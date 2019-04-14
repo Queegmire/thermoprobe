@@ -13,7 +13,7 @@ void printLocalTime()
     Serial.println("Failed to obtain time");
     return;
   }
-  Serial.println(&timeinfo, "%A, %B %d %Y %H:%M:%S");
+  Serial.println(&timeinfo, "%Y-%m-%d  %H:%M:%S");
 }
 
 void setup()
