@@ -1,3 +1,5 @@
+#include <Arduino.h>
+
 #include <WiFi.h>
 #include <PubSubClient.h>
 #include "config.h"
@@ -9,15 +11,6 @@ long lastMsg = 0; // timestamp of last publish
 int value = 0; // value being published
 
 const int ledPin = 2;
-
-void setup() {
-    Serial.begin(115200);
-    setup_wifi();
-    client.setServer(CONFIG_MQTT, 1883);
-    client.setCallback(callback);
-
-    pinMode(ledPin, OUTPUT);
-}
 
 void setup_wifi() {
   delay(10);
@@ -61,6 +54,15 @@ void callback(char* topic, byte* message, unsigned int length) {
       digitalWrite(ledPin, LOW);
     }
   }
+}
+
+void setup() {
+    Serial.begin(115200);
+    setup_wifi();
+    client.setServer(CONFIG_MQTT, 1883);
+    client.setCallback(callback);
+
+    pinMode(ledPin, OUTPUT);
 }
 
 void reconnect() {
