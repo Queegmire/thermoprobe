@@ -1,8 +1,11 @@
+#include <Arduino.h>
+
+#include <Adafruit_Sensor.h>
 #include <DHT.h>
 
 #define DHTPIN 22
 #define DHTTYPE DHT11
-#define FARENHEIT false
+#define FARENHEIT true
 #if FARENHEIT
     #define TEMP_UNIT "F"
 #else
@@ -23,7 +26,7 @@ void loop()
 {
     delay(5000);
     float h = dht.readHumidity();
-    float t = dht.readTemperature(false);
+    float t = dht.readTemperature(FARENHEIT);
 
     if (isnan(h) || isnan(t))
     {
