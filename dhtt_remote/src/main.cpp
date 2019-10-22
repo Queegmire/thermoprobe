@@ -1,3 +1,6 @@
+#include <Arduino.h>
+
+#include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
@@ -28,23 +31,6 @@ char msg[50];
 int value = 0;
 int period = 60000;
 
-void setup() {
-  Serial.begin(115200);
-
-  // connect to wifi, sensor and mqtt
-  setup_wifi();
-  dht.begin();
-  PSclient.setServer(CONFIG_MQTT, 1883);
-  PSclient.setCallback(callback);
-
-  // configure led for PWM
-  pinMode(LEDPIN, OUTPUT);
-  ledcSetup(ledChannel, freq, resolution);
-  ledcAttachPin(LEDPIN, ledChannel);
-
-  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-}
-
 void setup_wifi() {
   Serial.println();
   Serial.print("Connecting to ");
@@ -61,50 +47,6 @@ void setup_wifi() {
   Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
-}
-
-void callback(char* topic, byte* message, unsigned int length) {
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print(". Message: ");
-  String messageTemp;
-  
-  for (int i = 0; i < length; i++) {
-    Serial.print((char)message[i]);
-    messageTemp += (char)message[i];
-  }
-  Serial.println();
-  
-  if (String(topic) == "esp32/update") {
-    if (messageTemp == "1") {
-      update();
-      PSclient.publish("esp32/update", "0"); 
-    }
-  }
-  if (String(topic) == "esp32/interval") {
-    int pint = messageTemp.toInt(); 
-    period = pint * 1000;
-  }
-}
-
-void reconnect() {
-  // Loop until we're reconnected
-  while (!PSclient.connected()) {
-    Serial.print("Attempting MQTT connection...");
-    // Attempt to connect
-    if (PSclient.connect("ESP32Client")) {
-      Serial.println("connected");
-      // Subscribe
-      PSclient.subscribe("esp32/update");
-      PSclient.subscribe("esp32/interval");
-    } else {
-      Serial.print("failed, rc=");
-      Serial.print(PSclient.state());
-      Serial.println(" try again in 5 seconds");
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
-  }
 }
 
 String getLocalTime() {
@@ -151,6 +93,67 @@ void update() {
             delay(1);
         }
     }
+}
+
+void callback(char* topic, byte* message, unsigned int length) {
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print(". Message: ");
+  String messageTemp;
+  
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)message[i]);
+    messageTemp += (char)message[i];
+  }
+  Serial.println();
+  
+  if (String(topic) == "esp32/update") {
+    if (messageTemp == "1") {
+      update();
+      PSclient.publish("esp32/update", "0"); 
+    }
+  }
+  if (String(topic) == "esp32/interval") {
+    int pint = messageTemp.toInt(); 
+    period = pint * 1000;
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+
+  // connect to wifi, sensor and mqtt
+  setup_wifi();
+  dht.begin();
+  PSclient.setServer(CONFIG_MQTT, 1883);
+  PSclient.setCallback(callback);
+
+  // configure led for PWM
+  pinMode(LEDPIN, OUTPUT);
+  ledcSetup(ledChannel, freq, resolution);
+  ledcAttachPin(LEDPIN, ledChannel);
+
+  configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+}
+
+void reconnect() {
+  // Loop until we're reconnected
+  while (!PSclient.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    if (PSclient.connect("ESP32Client")) {
+      Serial.println("connected");
+      // Subscribe
+      PSclient.subscribe("esp32/update");
+      PSclient.subscribe("esp32/interval");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(PSclient.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
 }
 
 void loop() {
